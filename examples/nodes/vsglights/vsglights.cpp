@@ -123,6 +123,21 @@ int main(int argc, char** argv)
         auto group = vsg::Group::create();
         group->addChild(scene);
 
+        {
+            auto data = vsg::ubvec4Array3D::create(1,1,32, vsg::Data::Layout{.format=VK_FORMAT_R8G8B8A8_UNORM, .imageViewType=VK_IMAGE_VIEW_TYPE_2D_ARRAY});
+            auto descriptor = vsg::DescriptorImage::create(vsg::Sampler::create(), data, 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+            auto bindings = vsg::DescriptorSetLayoutBindings{
+                {0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr}};
+            auto setLayout = vsg::DescriptorSetLayout::create(bindings);
+            auto layout = vsg::PipelineLayout::create(vsg::DescriptorSetLayouts{setLayout}, vsg::PushConstantRanges());
+
+            auto bds = vsg::BindDescriptorSet::create(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, vsg::Descriptors{descriptor});
+            auto sg = vsg::StateGroup::create();
+            sg->stateCommands = {bds};
+            group->addChild(sg);
+        }
+
         // ambient light
         if (add_amient)
         {
